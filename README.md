@@ -1,1 +1,465 @@
-# Sahabdir-char
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1e293b">
+<title>সাহাব্দীর চর বেপারী পাড়া — মুষ্টি চাউল ও টাকার হিসাব</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f8fafc;color:#1e293b;font-family:system-ui,"Noto Sans Bengali",sans-serif}
+
+header{background:linear-gradient(135deg,#1e293b,#0f172a);color:white;text-align:center;padding:24px 14px 26px;box-shadow:0 6px 20px rgba(15,23,42,0.25)}
+header h1{font-size:clamp(20px,5vw,26px);margin:0 0 4px;font-weight:800;letter-spacing:-0.5px}
+header .sub{font-size:16px;margin:0 0 12px;opacity:0.9;font-weight:600}
+
+#clock{background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);display:inline-block;padding:8px 20px;border-radius:30px;font-size:15px;color:#38bdf8;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.15);margin-top:4px}
+
+.wrap{max-width:850px;margin:auto;padding:14px 12px 45px}
+
+.dashboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.stat{border-radius:20px;padding:14px 10px;text-align:center;min-height:115px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;user-select:none;color:white;box-shadow:0 8px 20px rgba(0,0,0,0.08);position:relative;overflow:hidden}
+.stat:active{transform:scale(0.97)}
+
+.stat.money-card{background:linear-gradient(135deg,#059669,#10b981)}
+.stat.rice-card{background:linear-gradient(135deg,#d97706,#f59e0b)}
+.stat.member-card{background:linear-gradient(135deg,#4f46e5,#6366f1)}
+.stat.chada-card{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
+
+.stat .emoji{font-size:26px;margin-bottom:2px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15))}
+.stat strong{font-size:22px;color:#ffffff;margin:2px 0;font-weight:800;text-shadow:0 2px 4px rgba(0,0,0,0.1)}
+.stat span{font-size:14px;color:#f8fafc;font-weight:700}
+.stat small{font-size:11px;color:#e2e8f0;margin-top:3px;opacity:0.9}
+
+.panel{background:white;border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid #e2e8f0}
+.searchbar input{width:100%;border:1.5px solid #cbd5e1;border-radius:12px;padding:11px 16px;font:inherit;font-size:15px;outline:none;background:#f8fafc;color:#1e293b}
+.searchbar input:focus{border-color:#4f46e5;background:#fff}
+.actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+button{font:inherit;border:0;cursor:pointer}
+.btn{padding:11px 10px;border-radius:12px;font-size:14px;font-weight:700}
+.primary{background:#4f46e5;color:white;box-shadow:0 4px 12px rgba(79,70,229,0.25)}
+
+.section-title{font-size:17px;color:#0f172a;margin:2px 0 10px;font-weight:700}
+.members{display:grid;gap:10px}
+.member{background:#1e293b;color:white;border:1.5px solid #334155;border-radius:16px;overflow:hidden;box-shadow:0 6px 16px rgba(15,23,42,0.1)}
+.memberhead{display:flex;align-items:center;gap:8px;padding:12px 14px;min-height:54px}
+.person{font-size:22px;cursor:pointer;color:#38bdf8}
+.membername{font-size:16px;font-weight:800;flex:1;text-align:left;background:transparent;color:white;border:none;padding:0;cursor:pointer}
+
+.btn-group{display:flex;align-items:center;gap:6px}
+.action-btn{font-size:16px;background:rgba(255,255,255,0.1);border:none;cursor:pointer;padding:6px 10px;border-radius:10px;transition:background 0.2s}
+.action-btn:hover{background:rgba(255,255,255,0.2)}
+.delete-btn{color:#fca5a5}
+
+.detail{display:none;background:#0f172a;padding:10px;border-top:1px solid #334155}
+.member.open .detail{display:block}
+
+.months-container{max-height:320px;overflow-y:auto;padding-right:4px;margin-bottom:6px}
+.months-container::-webkit-scrollbar{width:5px}
+.months-container::-webkit-scrollbar-thumb{background:#475569;border-radius:10px}
+
+.monthrow{background:#ffffff;color:#1e293b;border-radius:12px;margin:8px 0;padding:10px;display:grid;grid-template-columns:1fr 1fr 1fr 34px;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.04)}
+.monthname{font-size:14px;font-weight:800;color:#0f172a}
+.inp-box{width:100%;min-width:0;border:1.5px solid #cbd5e1;border-radius:8px;padding:7px 6px;text-align:center;font:inherit;font-size:13px;outline:none;background:#f8fafc}
+.inp-box:focus{border-color:#4f46e5;background:#fff}
+.tick{width:28px;height:28px;accent-color:#4f46e5;justify-self:center;cursor:pointer}
+
+.save-bar{display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:10px;border-top:1px dashed #334155}
+.save-btn{width:100%;background:#4f46e5;color:#ffffff;font-weight:800;font-size:15px;padding:11px;border-radius:12px;box-shadow:0 4px 12px rgba(79,70,229,0.3);transition:transform 0.1s}
+.save-btn:active{transform:scale(0.98)}
+.monthsummary{font-size:12px;color:#94a3b8;text-align:center;font-weight:600}
+
+/* কাস্টম আধুনিক পপ-আপ মোডাল */
+#customModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.75);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.25s ease}
+#customModal.show{opacity:1;pointer-events:auto}
+.modal-box{background:linear-gradient(135deg,#ffffff,#f8fafc);width:92%;max-width:450px;border-radius:22px;padding:22px;box-shadow:0 20px 40px rgba(0,0,0,0.3);border:1px solid #e2e8f0;transform:translateY(20px);transition:transform 0.25s ease;max-height:85vh;display:flex;flex-direction:column}
+#customModal.show .modal-box{transform:translateY(0)}
+.modal-title{font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.modal-desc{font-size:13px;color:#64748b;margin-bottom:14px}
+.modal-body{overflow-y:auto;max-height:55vh;padding-right:4px}
+.modal-body::-webkit-scrollbar{width:5px}
+.modal-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+.modal-input{width:100%;border:2px solid #cbd5e1;border-radius:12px;padding:12px 14px;font:inherit;font-size:16px;outline:none;background:#fff;color:#1e293b;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
+.modal-input:focus{border-color:#4f46e5}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-btn{padding:12px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;border:none}
+.modal-cancel{background:#f1f5f9;color:#475569}
+.modal-submit{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,0.3)}
+
+.chada-member-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f1f5f9;border-radius:12px;margin-bottom:8px}
+.chada-member-info{font-weight:700;color:#0f172a;font-size:14px}
+.chada-member-btns{display:flex;gap:6px}
+.c-btn{padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer}
+.c-edit{background:#3b82f6;color:white}
+.c-del{background:#ef4444;color:white}
+
+.stat-month-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:14px}
+.stat-month-name{font-weight:700;color:#0f172a}
+.stat-month-val{font-weight:800;color:#059669}
+
+#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%) translateY(100px);background:#0f172a;color:#38bdf8;padding:12px 24px;border-radius:30px;font-size:15px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,0.3);transition:transform 0.3s ease,opacity 0.3s ease;opacity:0;z-index:9999;display:flex;align-items:center;gap:8px;border:1px solid #334155}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+.empty{text-align:center;color:#94a3b8;padding:25px;font-size:14px}
+.hint{font-size:12px;color:#64748b;line-height:1.5;margin:8px 0 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>সাহাব্দীর চর বেপারী পাড়া</h1>
+  <p class="sub">মুষ্টি চাউল ও টাকার হিসাব</p>
+  <div id="clock">🕒 সময় ও তারিখ</div>
+</header>
+
+<main class="wrap">
+  <section class="dashboard">
+   <div class="stat money-card" onclick="openMonthlyStats('money')"><div class="emoji">💰</div><strong id="money">৳০</strong><span>মোট টাকা</span><small>মাসিক হিসাব দেখতে চাপুন</small></div>
+   <div class="stat rice-card" onclick="openMonthlyStats('rice')"><div class="emoji">🌾</div><strong id="rice">০ কেজি</strong><span>মোট চাউল</span><small>মাসিক হিসাব দেখতে চাপুন</small></div>
+   <div class="stat member-card"><div class="emoji">👥</div><strong id="count">০</strong><span>মোট সদস্য</span><small>সক্রিয় সদস্য</small></div>
+   <div class="stat chada-card" onclick="openChadaManager()"><div class="emoji">📋</div><strong>মাসিক চাঁদা</strong><span>সদস্য তালিকা দেখুন</span><small>ক্লিক করে খুলুন</small></div>
+  </section>
+
+  <section class="panel">
+   <div class="searchbar"><input id="search" placeholder="নাম খুঁজুন..." oninput="renderMembers()"></div>
+   <div class="actions">
+     <button class="btn primary" onclick="openAddMemberModal()">＋ নতুন সদস্য যোগ করুন</button>
+   </div>
+  </section>
+
+  <section class="panel">
+   <h2 class="section-title">সদস্যদের তালিকা</h2>
+   <div id="members" class="members"></div>
+   <p class="hint">💡 নামের ওপর চাপ দিয়ে ১২ মাসের হিসাব খুলুন। চাউল ও টাকা টাইপ করার পর নিচে 💾 "সংরক্ষণ করুন" বাটনে চাপ দিন।</p>
+  </section>
+</main>
+
+<!-- কাস্টম আধুনিক পপ-আপ মোডাল -->
+<div id="customModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">✏️ নাম পরিবর্তন</div>
+    <div class="modal-desc" id="modalDesc">সদস্যের সঠিক নামটি নিচে লিখুন</div>
+    
+    <div id="modalInputArea">
+      <input type="text" id="modalInput" class="modal-input" placeholder="এখানে নাম লিখুন...">
+    </div>
+
+    <div id="modalManagerArea" class="modal-body" style="display:none;"></div>
+    <div id="modalBodyArea" class="modal-body" style="display:none;"></div>
+
+    <div class="modal-actions" id="modalActions">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">বাতিল</button>
+      <button class="modal-btn modal-submit" id="modalSubmitBtn">সংরক্ষণ</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">✅ সফলভাবে সংরক্ষণ করা হয়েছে!</div>
+
+<script>
+const months=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+
+let people=JSON.parse(localStorage.getItem('char_beparee_v18')||'null');
+if(!people){
+  people=[]; // প্রথমে খালি থাকবে, আপনারা নিজেদের মতো নাম যোগ করে নেবেন।
+  persist(false);
+}
+
+function showToast(msg){
+  let t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>{ t.classList.remove('show'); }, 2500);
+}
+
+function persist(showAlert = true){
+  localStorage.setItem('char_beparee_v18',JSON.stringify(people));
+  render();
+  if(showAlert){
+    showToast('✅ সংরক্ষণ সফল হয়েছে!');
+  }
+}
+
+function bn(n){
+  return Number(n||0).toLocaleString('bn-BD',{maximumFractionDigits:2});
+}
+
+function clock(){
+  const d = new Date();
+  document.getElementById('clock').textContent='🕒 '+d.toLocaleTimeString('bn-BD')+' · 📅 '+d.toLocaleDateString('bn-BD',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+setInterval(clock,1000);
+clock();
+
+function closeModal(){
+  document.getElementById('customModal').classList.remove('show');
+}
+
+function openNameModal(title, desc, defaultVal, onSubmit){
+  let modal=document.getElementById('customModal');
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalDesc').textContent=desc;
+  document.getElementById('modalInputArea').style.display='block';
+  document.getElementById('modalManagerArea').style.display='none';
+  document.getElementById('modalBodyArea').style.display='none';
+  document.getElementById('modalActions').style.display='grid';
+  
+  let input=document.getElementById('modalInput');
+  input.value=defaultVal||'';
+  modal.classList.add('show');
+  setTimeout(()=>input.focus(), 100);
+
+  let subBtn=document.getElementById('modalSubmitBtn');
+  subBtn.textContent='সংরক্ষণ';
+  subBtn.onclick=()=>{
+    let val=input.value.trim();
+    if(!val) return;
+    modal.classList.remove('show');
+    onSubmit(val);
+  };
+  input.onkeydown=(e)=>{ if(e.key==='Enter') subBtn.click(); };
+}
+
+/* "মাসিক চাঁদা" কার্ডে চাপ দিলে সমস্ত সদস্যের ম্যানেজমেন্ট লিস্ট খুলবে */
+function openChadaManager(){
+  let modal=document.getElementById('customModal');
+  document.getElementById('modalTitle').textContent='📋 মাসিক চাঁদা (সদস্য ব্যবস্থাপনা)';
+  document.getElementById('modalDesc').textContent='এখানে সকল সদস্যের তালিকা রয়েছে। প্রয়োজনে এডিট বা মুছতে পারবেন:';
+
+  document.getElementById('modalInputArea').style.display='none';
+  document.getElementById('modalBodyArea').style.display='none';
+  let managerArea = document.getElementById('modalManagerArea');
+  managerArea.style.display='block';
+  managerArea.innerHTML='';
+
+  document.getElementById('modalActions').style.display='none';
+
+  if(people.length === 0){
+    managerArea.innerHTML='<div class="empty">কোনো সদস্য নেই। নতুন সদস্য যোগ করুন।</div>';
+  } else {
+    people.forEach(p=>{
+      let row = document.createElement('div');
+      row.className = 'chada-member-row';
+      row.innerHTML = `
+        <div class="chada-member-info">${escapeHtml(p.name)}</div>
+        <div class="chada-member-btns">
+          <button class="c-btn c-edit" onclick="closeModal(); editMemberName(${p.id})">এডিট</button>
+          <button class="c-btn c-del" onclick="deleteMember(${p.id}); openChadaManager();">মুছুন</button>
+        </div>
+      `;
+      managerArea.append(row);
+    });
+  }
+
+  modal.classList.add('show');
+}
+
+function openMonthlyStats(type){
+  let modal=document.getElementById('customModal');
+  document.getElementById('modalTitle').textContent = type === 'money' ? '💰 ১২ মাসের মোট টাকার হিসাব' : '🌾 ১২ মাসের মোট চাউলের হিসাব';
+  document.getElementById('modalDesc').textContent = 'প্রতি মাসে সকল সদস্যের মোট জমার বিবরণ:';
+  
+  document.getElementById('modalInputArea').style.display='none';
+  document.getElementById('modalManagerArea').style.display='none';
+  let bodyArea=document.getElementById('modalBodyArea');
+  bodyArea.style.display='block';
+  bodyArea.innerHTML='';
+
+  document.getElementById('modalActions').style.display='grid';
+
+  months.forEach((mName, idx)=>{
+    let monthTotal = 0;
+    people.forEach(p=>{
+      if(type === 'money'){
+        monthTotal += +(p.months[idx].money || 0);
+      } else {
+        monthTotal += +(p.months[idx].kg || 0);
+      }
+    });
+
+    let row = document.createElement('div');
+    row.className = 'stat-month-row';
+    row.innerHTML = `<span class="stat-month-name">${mName}</span> <span class="stat-month-val">${type==='money' ? '৳'+bn(monthTotal) : bn(monthTotal)+' কেজি'}</span>`;
+    bodyArea.append(row);
+  });
+
+  let subBtn=document.getElementById('modalSubmitBtn');
+  subBtn.textContent='বন্ধ করুন';
+  subBtn.onclick=()=>closeModal();
+
+  modal.classList.add('show');
+}
+
+function openAddMemberModal(){
+  openNameModal('➕ নতুন সদস্য যোগ', 'নতুন সদস্যের পুরো নাম নিচে লিখুন:', '', (name)=>{
+    people.push({
+      id:Date.now(),
+      name:name,
+      months:months.map(()=>({kg:'',money:'',paid:false}))
+    });
+    persist(false);
+    showToast('✅ নতুন সদস্য যোগ হয়েছে!');
+  });
+}
+
+function editMemberName(id){
+  let p=people.find(x=>x.id===id);
+  if(!p) return;
+  openNameModal('✏️ নাম পরিবর্তন করুন', 'সদস্যের নতুন নাম নিচে লিখুন:', p.name, (newName)=>{
+    p.name=newName;
+    persist(false);
+    showToast('✏️ নাম পরিবর্তন করা হয়েছে!');
+  });
+}
+
+function deleteMember(id){
+  let p=people.find(x=>x.id===id);
+  if(!p) return;
+  if(confirm(`"${p.name}" এবং তার সমস্ত হিসাব মুছে ফেলতে চান?`)){
+    people=people.filter(x=>x.id!==id);
+    persist(false);
+    showToast('🗑️ সদস্য মুছে ফেলা হয়েছে!');
+  }
+}
+
+function renderMembers(){
+  let q=document.getElementById('search').value.trim().toLowerCase();
+  let box=document.getElementById('members');
+  box.innerHTML='';
+  let list=people.filter(p=>p.name.toLowerCase().includes(q));
+  
+  if(!list.length){
+    box.innerHTML='<div class="empty">কোনো সদস্য নেই। উপরে "নতুন সদস্য যোগ করুন" বাটনে চাপ দিয়ে নাম যোগ করুন।</div>';
+    return;
+  }
+  
+  list.forEach(p=>{
+    let card=document.createElement('article');
+    card.className='member';
+    card.dataset.id=p.id;
+
+    let head=document.createElement('div');
+    head.className='memberhead';
+
+    let icon=document.createElement('span');
+    icon.className='person';
+    icon.textContent='👤';
+    icon.onclick=()=>card.classList.toggle('open');
+
+    let name=document.createElement('button');
+    name.className='membername';
+    name.textContent=p.name;
+    name.onclick=()=>card.classList.toggle('open');
+
+    let btnGroup=document.createElement('div');
+    btnGroup.className='btn-group';
+
+    let editBtn=document.createElement('button');
+    editBtn.className='action-btn';
+    editBtn.textContent='✏️';
+    editBtn.title='নাম পরিবর্তন করুন';
+    editBtn.onclick=(e)=>{
+      e.stopPropagation();
+      editMemberName(p.id);
+    };
+
+    let deleteBtn=document.createElement('button');
+    deleteBtn.className='action-btn delete-btn';
+    deleteBtn.textContent='🗑️';
+    deleteBtn.title='সদস্য মুছে ফেলুন';
+    deleteBtn.onclick=(e)=>{
+      e.stopPropagation();
+      deleteMember(p.id);
+    };
+
+    btnGroup.append(editBtn, deleteBtn);
+    head.append(icon, name, btnGroup);
+    card.append(head);
+
+    let detail=document.createElement('div');
+    detail.className='detail';
+
+    let monthsContainer = document.createElement('div');
+    monthsContainer.className = 'months-container';
+
+    p.months.forEach((m,i)=>{
+      let row=document.createElement('div');
+      row.className='monthrow';
+
+      let label=document.createElement('div');
+      label.className='monthname';
+      label.textContent=months[i];
+
+      let inputKg=document.createElement('input');
+      inputKg.className='inp-box';
+      inputKg.type='number';
+      inputKg.placeholder='কেজি';
+      inputKg.value=m.kg||'';
+      inputKg.onchange=()=>{m.kg=inputKg.value;};
+
+      let inputMoney=document.createElement('input');
+      inputMoney.className='inp-box';
+      inputMoney.type='number';
+      inputMoney.placeholder='টাকা (৳)';
+      inputMoney.value=m.money||'';
+      inputMoney.onchange=()=>{m.money=inputMoney.value;};
+
+      let check=document.createElement('input');
+      check.type='checkbox';
+      check.className='tick';
+      check.checked=!!m.paid;
+      check.onchange=()=>{m.paid=check.checked;};
+
+      row.append(label,inputKg,inputMoney,check);
+      monthsContainer.append(row);
+    });
+
+    detail.append(monthsContainer);
+
+    let sumKg=p.months.reduce((a,m)=>a+(+m.kg||0),0);
+    let sumMoney=p.months.reduce((a,m)=>a+(+m.money||0),0);
+
+    let saveBar=document.createElement('div');
+    saveBar.className='save-bar';
+
+    let sum=document.createElement('div');
+    sum.className='monthsummary';
+    sum.textContent=`মোট: ${bn(sumKg)} কেজি চাউল | ৳${bn(sumMoney)}`;
+
+    let saveBtn=document.createElement('button');
+    saveBtn.className='save-btn';
+    saveBtn.textContent='💾 সংরক্ষণ করুন';
+    saveBtn.onclick=()=>persist(true);
+
+    saveBar.append(sum, saveBtn);
+    detail.append(saveBar);
+    card.append(detail);
+    box.append(card);
+  });
+}
+
+function clearSearch(){
+  document.getElementById('search').value='';
+  renderMembers();
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(){
+  renderMembers();
+  let kg=0,money=0;
+  people.forEach(p=>p.months.forEach(m=>{
+    kg+=+m.kg||0;
+    money+=+m.money||0;
+  }));
+  document.getElementById('money').textContent='৳'+bn(money);
+  document.getElementById('rice').textContent=bn(kg)+' কেজি';
+  document.getElementById('count').textContent=bn(people.length);
+}
+
+render();
+</script>
+</body>
+</html>
